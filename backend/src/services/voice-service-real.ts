@@ -1,4 +1,3 @@
-import { CallContext } from "../types";
 import { CallAgentService } from "../services/call-agent";
 
 /**
@@ -20,7 +19,7 @@ export class RealVoiceService {
    */
   async makeRealCall(
     phoneNumber: string,
-    context: CallContext,
+    context: any,
     customInstructions?: string
   ): Promise<{
     callId: string;
@@ -38,6 +37,9 @@ export class RealVoiceService {
         console.log(`[RealVoiceService] Including custom instructions in prompt`);
       }
 
+      // Get prospect name from context (handle different structures)
+      const prospectName = context.prospect_info?.prospect?.name || context.prospect_name || 'there';
+
       // Create assistant with dynamic context
       const assistantResponse = await fetch('https://api.vapi.ai/assistant', {
         method: 'POST',
@@ -46,7 +48,7 @@ export class RealVoiceService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: `Call to ${context.prospect_info.prospect.name}`,
+          name: `Call to ${prospectName}`,
           model: {
             provider: "openai",
             model: "gpt-4o-mini",
@@ -62,7 +64,7 @@ export class RealVoiceService {
             provider: "openai",
             voiceId: "alloy", // Natural female voice
           },
-          firstMessage: `Hi, is this ${context.prospect_info.prospect.name}?`,
+          firstMessage: `Hi, is this ${prospectName}?`,
 
           // Transcriber settings
           transcriber: {
@@ -76,12 +78,6 @@ export class RealVoiceService {
           endCallFunctionEnabled: true,
           silenceTimeoutSeconds: 30,
           maxDurationSeconds: 60, // 1 minute max
-
-          // Voicemail detection
-          voicemailDetection: {
-            enabled: true,
-            voicemailMessage: `Hi ${context.prospect_info.prospect.name}, this is Katie calling about improving your sales process. I'll send you an email as well. Thanks!`,
-          },
         })
       });
 
@@ -103,7 +99,7 @@ export class RealVoiceService {
           assistantId: assistant.id,
           customer: {
             number: phoneNumber,
-            name: context.prospect_info.prospect.name,
+            name: prospectName,
           },
           phoneNumberId: process.env.VAPI_PHONE_NUMBER_ID,
         })

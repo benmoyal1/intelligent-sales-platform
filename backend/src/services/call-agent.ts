@@ -135,7 +135,15 @@ export class CallAgentService {
     };
   }
 
-  buildSystemPrompt(context: CallContext): string {
+  buildSystemPrompt(context: CallContext | any): string {
+    // Handle both old flat structure and new nested structure
+    const prospectName = context.prospect_name || context.prospect_info?.prospect?.name || 'the prospect';
+    const prospectRole = context.prospect_role || context.prospect_info?.prospect?.role || 'their role';
+    const company = context.company || context.prospect_info?.prospect?.company || 'their company';
+    const talkingPoints = context.talking_points || context.prospect_info?.talking_points || [];
+    const painPoints = context.pain_points || context.prospect_info?.pain_points || [];
+    const objectionStrategies = context.objection_strategies || context.prospect_info?.objection_strategies || {};
+
     return `You are Katie, an AI Sales Development Representative making an outbound call.
 
 PERSONALITY:
@@ -145,26 +153,28 @@ PERSONALITY:
 - Sound natural, not robotic
 
 YOUR OBJECTIVE:
-Book a qualified meeting between ${context.prospect_name} and our account manager.
+Book a qualified meeting between ${prospectName} and our account manager.
 
 PROSPECT CONTEXT:
-Name: ${context.prospect_name}
-Role: ${context.prospect_role}
-Company: ${context.company}
+Name: ${prospectName}
+Role: ${prospectRole}
+Company: ${company}
 
 KEY INSIGHTS:
-${context.talking_points.map((p, i) => `${i + 1}. ${p}`).join('\n')}
+${talkingPoints.length > 0 ? talkingPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join('\n') : '- General value proposition for their industry'}
 
 LIKELY PAIN POINTS:
-${context.pain_points.map(p => `- ${p}`).join('\n')}
+${painPoints.length > 0 ? painPoints.map((p: string) => `- ${p}`).join('\n') : '- Common challenges in their role'}
 
 OBJECTION HANDLING:
-${Object.entries(context.objection_strategies)
-  .map(([obj, strategy]) => `If "${obj}": ${strategy}`)
-  .join('\n')}
+${Object.keys(objectionStrategies).length > 0
+  ? Object.entries(objectionStrategies)
+      .map(([obj, strategy]) => `If "${obj}": ${strategy}`)
+      .join('\n')
+  : '- Listen actively and address concerns with empathy'}
 
 CONVERSATION FRAMEWORK:
-1. Opening: Confirm you're speaking with ${context.prospect_name}, ask if it's a good time
+1. Opening: Confirm you're speaking with ${prospectName}, ask if it's a good time
 2. Value Prop: Briefly mention why you're calling (use insights above)
 3. Discovery: Ask about their current challenges
 4. Qualification: Understand budget, authority, need, timeline
