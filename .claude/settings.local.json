@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo $OPENAI_API_KEY)",
+      "Bash(npm run seed:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(lsof:*)",
+      "Bash(kill:*)",
+      "Bash(curl:*)",
+      "Bash(sqlite3:*)",
+      "Bash(cat:*)",
+      "Bash(npm run test-calls:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
