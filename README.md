@@ -22,6 +22,12 @@ A modern, intelligent sales automation platform featuring real-time voice calls 
 - Meeting conversion analytics
 - Success probability indicators
 
+### Modern Dark UI
+- **Dark Theme**: Professional dark theme inspired by Claude's interface
+- **Optimized Contrast**: Carefully selected colors for optimal readability
+- **Smooth Transitions**: Enhanced user experience with subtle animations
+- **Responsive Design**: Works seamlessly across all devices
+
 ## Tech Stack
 
 ### Frontend
@@ -68,13 +74,40 @@ This platform follows modern software engineering principles:
 
 ## Getting Started
 
+You can run this application in two ways:
+1. **Local Development** - Traditional npm-based development
+2. **Docker Deployment** - Production-ready containerized deployment with load balancing
+
 ### Prerequisites
-- Node.js 18+ and npm
+- Node.js 18+ and npm (for local development)
+- Docker & Docker Compose (for containerized deployment)
 - OpenAI API key
 - Vapi.ai account and API key
 - Twilio account (for WhatsApp)
 
-### Installation
+### Quick Start with Docker (Recommended)
+
+For production deployment with 2 backend instances and nginx load balancing:
+
+```bash
+# Setup environment
+cp .env.docker.example .env.docker
+# Edit .env.docker with your API keys
+
+# Build and start all services
+make up-build
+
+# Check health
+make health
+```
+
+Access the application:
+- Frontend: http://localhost:3000
+- API (Load Balanced): http://localhost:8080/api
+
+See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for detailed Docker documentation.
+
+### Local Development Installation
 
 1. **Clone the repository**
 ```bash
@@ -219,6 +252,66 @@ alta_system/
 - `npm run dev` - Start Vite development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
+
+### Makefile Commands (Docker)
+```bash
+make help              # Show all available commands
+make up                # Start all containers
+make up-build          # Build and start containers
+make down              # Stop all containers
+make logs              # View logs from all services
+make health            # Check health of all services
+make restart-backend   # Restart backend instances
+make seed              # Seed database
+```
+
+See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for complete command reference.
+
+## Scalability & Deployment
+
+### Production Architecture
+
+The Docker deployment provides a scalable, production-ready architecture:
+
+```
+┌─────────────┐
+│   Frontend  │ :3000
+│   (Nginx)   │
+└─────────────┘
+       │
+       ↓
+┌─────────────┐
+│   Nginx LB  │ :8080 (Round Robin)
+└─────────────┘
+       │
+    ┌──┴──┐
+    ↓     ↓
+┌────────┐ ┌────────┐
+│Backend1│ │Backend2│ :3001
+└────────┘ └────────┘
+    │          │
+┌────────┐ ┌────────┐
+│  DB 1  │ │  DB 2  │
+└────────┘ └────────┘
+```
+
+### Key Features:
+- **Load Balancing**: Nginx distributes requests across 2 backend instances using round-robin
+- **High Availability**: If one backend fails, traffic automatically routes to healthy instances
+- **Health Checks**: All services have automated health monitoring
+- **Auto-Restart**: Containers automatically restart on failure
+- **Separate Data**: Each backend has its own database volume for data isolation
+- **Rate Limiting**: 10 requests/second per IP with burst capacity
+- **Resource Monitoring**: Built-in health and stats commands
+
+### Scaling Horizontally
+
+To add more backend instances:
+1. Add new backend service in `docker-compose.yml`
+2. Update nginx upstream servers in `nginx/nginx.conf`
+3. Run `make down && make up-build`
+
+The architecture supports adding as many backend instances as needed for your load requirements.
 
 ## Key Features Explained
 

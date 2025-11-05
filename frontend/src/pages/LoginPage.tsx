@@ -28,21 +28,21 @@ export default function LoginPage({ onLogin }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+      <div className="max-w-md w-full bg-dark-card rounded-lg shadow-xl p-8">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center">
               <Bot className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Outbound AI System</h1>
-          <p className="text-gray-600 mt-2">Alta Home Assignment Demo</p>
+          <h1 className="text-3xl font-bold text-gray-100">Outbound AI System</h1>
+          <p className="text-gray-400 mt-2">Alta Home Assignment Demo</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="username" className="block text-sm font-medium text-gray-300">
               Username
             </label>
             <input
@@ -50,13 +50,13 @@ export default function LoginPage({ onLogin }: Props) {
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-dark-hover text-gray-100 placeholder-gray-500"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-300">
               Password
             </label>
             <input
@@ -64,13 +64,13 @@ export default function LoginPage({ onLogin }: Props) {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-dark-border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-dark-hover text-gray-100 placeholder-gray-500"
               required
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">{error}</div>
+            <div className="text-red-400 text-sm bg-red-900 bg-opacity-30 p-3 rounded-md">{error}</div>
           )}
 
           <button
@@ -83,10 +83,10 @@ export default function LoginPage({ onLogin }: Props) {
         </form>
 
         <div className="mt-6 text-center">
-          <div className="text-sm text-gray-600 bg-gray-50 p-4 rounded-md">
+          <div className="text-sm text-gray-300 bg-dark-hover p-4 rounded-md">
             <p className="font-semibold mb-2">Demo Credentials:</p>
-            <p>Username: <code className="bg-white px-2 py-1 rounded">demo</code></p>
-            <p>Password: <code className="bg-white px-2 py-1 rounded">demo123</code></p>
+            <p>Username: <code className="bg-dark-card px-2 py-1 rounded">demo</code></p>
+            <p>Password: <code className="bg-dark-card px-2 py-1 rounded">demo123</code></p>
           </div>
         </div>
       </div>

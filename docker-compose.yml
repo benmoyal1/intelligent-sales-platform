@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  # Backend Instance 1
+  backend1:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: alta-backend-1
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - VAPI_API_KEY=${VAPI_API_KEY}
+      - VAPI_PHONE_NUMBER=${VAPI_PHONE_NUMBER}
+      - VAPI_ASSISTANT_ID=${VAPI_ASSISTANT_ID}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_WHATSAPP_NUMBER=${TWILIO_WHATSAPP_NUMBER}
+    volumes:
+      - backend1_data:/app/data
+    networks:
+      - alta_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Backend Instance 2
+  backend2:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: alta-backend-2
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - VAPI_API_KEY=${VAPI_API_KEY}
+      - VAPI_PHONE_NUMBER=${VAPI_PHONE_NUMBER}
+      - VAPI_ASSISTANT_ID=${VAPI_ASSISTANT_ID}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_WHATSAPP_NUMBER=${TWILIO_WHATSAPP_NUMBER}
+    volumes:
+      - backend2_data:/app/data
+    networks:
+      - alta_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx Load Balancer
+  load_balancer:
+    image: nginx:alpine
+    container_name: alta-load-balancer
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend1
+      - backend2
+    networks:
+      - alta_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/lb-health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: alta-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://localhost:8080/api
+    depends_on:
+      - load_balancer
+    networks:
+      - alta_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  alta_network:
+    driver: bridge
+
+volumes:
+  backend1_data:
+    driver: local
+  backend2_data:
+    driver: local

@@ -83,7 +83,7 @@ export default function MeetingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600">Loading meetings...</div>
+        <div className="text-gray-400">Loading meetings...</div>
       </div>
     );
   }
@@ -91,68 +91,68 @@ export default function MeetingsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Scheduled Meetings</h1>
-        <p className="text-gray-600 mt-2">View and manage upcoming prospect meetings</p>
+        <h1 className="text-3xl font-bold text-gray-100">Scheduled Meetings</h1>
+        <p className="text-gray-400 mt-2">View and manage upcoming prospect meetings</p>
       </div>
 
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-dark-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Meetings</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.total_meetings || 0}</p>
+                <p className="text-sm font-medium text-gray-400">Total Meetings</p>
+                <p className="text-2xl font-semibold text-gray-100">{stats.total_meetings || 0}</p>
               </div>
-              <Calendar className="w-8 h-8 text-blue-600" />
+              <Calendar className="w-8 h-8 text-blue-400" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-dark-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Scheduled</p>
-                <p className="text-2xl font-semibold text-blue-600">{stats.scheduled || 0}</p>
+                <p className="text-sm font-medium text-gray-400">Scheduled</p>
+                <p className="text-2xl font-semibold text-blue-400">{stats.scheduled || 0}</p>
               </div>
-              <Clock className="w-8 h-8 text-blue-600" />
+              <Clock className="w-8 h-8 text-blue-400" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-dark-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-semibold text-green-600">{stats.completed || 0}</p>
+                <p className="text-sm font-medium text-gray-400">Completed</p>
+                <p className="text-2xl font-semibold text-green-400">{stats.completed || 0}</p>
               </div>
-              <CheckCircle className="w-8 h-8 text-green-600" />
+              <CheckCircle className="w-8 h-8 text-green-400" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-dark-card rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">No-Shows</p>
-                <p className="text-2xl font-semibold text-yellow-600">{stats.no_shows || 0}</p>
+                <p className="text-sm font-medium text-gray-400">No-Shows</p>
+                <p className="text-2xl font-semibold text-yellow-400">{stats.no_shows || 0}</p>
               </div>
-              <AlertCircle className="w-8 h-8 text-yellow-600" />
+              <AlertCircle className="w-8 h-8 text-yellow-400" />
             </div>
           </div>
         </div>
       )}
 
       {/* Meetings List */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-dark-card rounded-lg shadow overflow-hidden">
         {meetings.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-400">
             No meetings scheduled yet
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-dark-border">
             {meetings.map((meeting) => {
               const datetime = formatDateTime(meeting.scheduled_time);
 
               return (
-                <div key={meeting.id} className="p-6 hover:bg-gray-50">
+                <div key={meeting.id} className="p-6 hover:bg-dark-hover">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
@@ -160,37 +160,37 @@ export default function MeetingsPage() {
                           {getStatusIcon(meeting.status)}
                           <span className="ml-1">{meeting.status}</span>
                         </div>
-                        <span className="text-xs text-gray-500 uppercase">{meeting.meeting_type}</span>
+                        <span className="text-xs text-gray-400 uppercase">{meeting.meeting_type}</span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <div className="flex items-center text-gray-900 mb-2">
-                            <User className="w-4 h-4 mr-2 text-gray-400" />
+                          <div className="flex items-center text-gray-100 mb-2">
+                            <User className="w-4 h-4 mr-2 text-gray-500" />
                             <span className="font-medium">{meeting.prospect_name}</span>
                           </div>
-                          <div className="flex items-center text-gray-600 text-sm mb-1">
-                            <Building2 className="w-4 h-4 mr-2 text-gray-400" />
+                          <div className="flex items-center text-gray-300 text-sm mb-1">
+                            <Building2 className="w-4 h-4 mr-2 text-gray-500" />
                             <span>{meeting.company}</span>
                           </div>
-                          <div className="flex items-center text-gray-600 text-sm">
-                            <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                          <div className="flex items-center text-gray-300 text-sm">
+                            <Mail className="w-4 h-4 mr-2 text-gray-500" />
                             <span>{meeting.email || 'No email'}</span>
                           </div>
                         </div>
 
                         <div>
-                          <div className="flex items-center text-gray-900 mb-2">
-                            <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                          <div className="flex items-center text-gray-100 mb-2">
+                            <Calendar className="w-4 h-4 mr-2 text-gray-500" />
                             <span className="font-medium">{datetime.date}</span>
                           </div>
-                          <div className="flex items-center text-gray-600 text-sm mb-1">
-                            <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                          <div className="flex items-center text-gray-300 text-sm mb-1">
+                            <Clock className="w-4 h-4 mr-2 text-gray-500" />
                             <span>{datetime.time} ({meeting.duration_minutes} min)</span>
                           </div>
                           {meeting.account_manager_name && (
-                            <div className="flex items-center text-gray-600 text-sm">
-                              <User className="w-4 h-4 mr-2 text-gray-400" />
+                            <div className="flex items-center text-gray-300 text-sm">
+                              <User className="w-4 h-4 mr-2 text-gray-500" />
                               <span>AM: {meeting.account_manager_name}</span>
                             </div>
                           )}
@@ -198,7 +198,7 @@ export default function MeetingsPage() {
                       </div>
 
                       {meeting.notes && (
-                        <div className="mt-3 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                        <div className="mt-3 text-sm text-gray-300 bg-dark-hover p-2 rounded">
                           {meeting.notes}
                         </div>
                       )}

@@ -33,7 +33,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600">Loading dashboard...</div>
+        <div className="text-gray-400">Loading dashboard...</div>
       </div>
     );
   }
@@ -46,8 +46,8 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">AI-Driven Outbound Call Center System Overview</p>
+        <h1 className="text-3xl font-bold text-gray-100">Dashboard</h1>
+        <p className="text-gray-400 mt-2">AI-Driven Outbound Call Center System Overview</p>
       </div>
 
       {/* Stats Grid */}
@@ -84,33 +84,33 @@ export default function DashboardPage() {
 
       {/* System Info */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">System Architecture</h2>
+        <div className="bg-dark-card rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-100 mb-4">System Architecture</h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Multi-Agent System:</span>
-              <span className="font-medium text-gray-900">Research → Call → Booking</span>
+              <span className="text-gray-400">Multi-Agent System:</span>
+              <span className="font-medium text-gray-100">Research → Call → Booking</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">AI Model:</span>
-              <span className="font-medium text-gray-900">GPT-4o-mini</span>
+              <span className="text-gray-400">AI Model:</span>
+              <span className="font-medium text-gray-100">GPT-4o-mini</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Conversation Type:</span>
-              <span className="font-medium text-gray-900">Text-based Simulator</span>
+              <span className="text-gray-400">Conversation Type:</span>
+              <span className="font-medium text-gray-100">Text-based Simulator</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Average Sentiment:</span>
-              <span className="font-medium text-gray-900">
+              <span className="text-gray-400">Average Sentiment:</span>
+              <span className="font-medium text-gray-100">
                 {((stats?.calls?.avg_sentiment || 0.5) * 100).toFixed(0)}%
               </span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Key Features</h2>
-          <ul className="space-y-2 text-sm text-gray-600">
+        <div className="bg-dark-card rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-100 mb-4">Key Features</h2>
+          <ul className="space-y-2 text-sm text-gray-400">
             <li className="flex items-center">
               <span className="w-2 h-2 bg-indigo-600 rounded-full mr-3"></span>
               AI Research Agent analyzes prospects with GPT-4o
@@ -144,18 +144,18 @@ interface StatCardProps {
 
 function StatCard({ icon, title, value, subtitle, color }: StatCardProps) {
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    orange: 'bg-orange-50 text-orange-600',
+    blue: 'bg-blue-900 text-blue-400',
+    green: 'bg-green-900 text-green-400',
+    purple: 'bg-purple-900 text-purple-400',
+    orange: 'bg-orange-900 text-orange-400',
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-dark-card rounded-lg shadow p-6">
       <div className={`inline-flex p-3 rounded-lg ${colorClasses[color]} mb-4`}>{icon}</div>
-      <div className="text-3xl font-bold text-gray-900 mb-1">{value}</div>
-      <div className="text-sm font-medium text-gray-900">{title}</div>
-      <div className="text-xs text-gray-500 mt-1">{subtitle}</div>
+      <div className="text-3xl font-bold text-gray-100 mb-1">{value}</div>
+      <div className="text-sm font-medium text-gray-100">{title}</div>
+      <div className="text-xs text-gray-400 mt-1">{subtitle}</div>
     </div>
   );
 }
