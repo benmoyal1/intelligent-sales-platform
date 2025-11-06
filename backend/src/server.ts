@@ -10,6 +10,7 @@ import { campaignsRouter } from './routes/campaigns';
 import { realCallsRouter } from './routes/real-calls';
 import { meetingsRouter } from './routes/meetings';
 import { whatsappWebhookRouter } from './routes/whatsapp-webhook';
+import { vapiWebhookRouter } from './routes/vapi-webhook';
 import { initDatabase } from './database';
 
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/campaigns', campaignsRouter);
 app.use('/api/real-calls', realCallsRouter);
 app.use('/api/meetings', meetingsRouter);
 app.use('/api/whatsapp', whatsappWebhookRouter);
+app.use('/api/vapi', vapiWebhookRouter);
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

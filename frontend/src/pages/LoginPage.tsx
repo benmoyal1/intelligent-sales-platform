@@ -85,8 +85,8 @@ export default function LoginPage({ onLogin }: Props) {
         <div className="mt-6 text-center">
           <div className="text-sm text-gray-300 bg-dark-hover p-4 rounded-md">
             <p className="font-semibold mb-2">Demo Credentials:</p>
-            <p>Username: <code className="bg-dark-card px-2 py-1 rounded">demo</code></p>
-            <p>Password: <code className="bg-dark-card px-2 py-1 rounded">demo123</code></p>
+            <p>Username: <code className="bg-dark-card px-2 py-1 rounded">test</code></p>
+            <p>Password: <code className="bg-dark-card px-2 py-1 rounded">test123</code></p>
           </div>
         </div>
       </div>

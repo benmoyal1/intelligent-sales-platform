@@ -72,12 +72,17 @@ realCallsRouter.post('/voice/start', authenticateToken, async (req, res) => {
     // Make the real call!
     const call = await voiceService.makeRealCall(prospect.phone, callContext);
 
-    // Save to database
+    // Save to database with Vapi call ID for webhook lookup
     const callId = uuidv4();
+    const initialConversation = JSON.stringify({
+      vapiCallId: call.callId,
+      messages: []
+    });
+
     db.prepare(
-      `INSERT INTO calls (id, prospect_id, status, conversation)
-       VALUES (?, ?, 'active', '[]')`
-    ).run(callId, prospect_id);
+      `INSERT INTO calls (id, prospect_id, call_type, status, conversation, created_at)
+       VALUES (?, ?, 'voice', 'in_progress', ?, ?)`
+    ).run(callId, prospect_id, initialConversation, new Date().toISOString());
 
     res.json({
       success: true,
@@ -131,23 +136,14 @@ realCallsRouter.post('/whatsapp/send', authenticateToken, async (req, res) => {
       },
     };
 
-    // Send WhatsApp message
-    const result = await whatsappService.sendOutreachMessage(
-      prospect.phone,
-      prospect.name,
-      callContext as any
-    );
-
-    // Log activity
-    db.prepare(
-      `INSERT INTO calls (id, prospect_id, status, outcome)
-       VALUES (?, ?, 'completed', 'whatsapp_sent')`
-    ).run(uuidv4(), prospect_id);
+    // WhatsAppService.startCampaign already creates the call record
+    const result = await whatsappService.startCampaign(prospect_id);
 
     res.json({
       success: true,
-      message_id: result.messageId,
-      message: `WhatsApp message sent to ${prospect.phone}`,
+      call_id: result.callId,
+      status: result.status,
+      message: `WhatsApp conversation started with ${prospect.phone}`,
     });
   } catch (error: any) {
     console.error('WhatsApp error:', error);
@@ -172,7 +168,7 @@ realCallsRouter.get('/voice/status/:callId', authenticateToken, async (req, res)
  */
 realCallsRouter.post('/whatsapp/webhook', async (req, res) => {
   try {
-    const response = await whatsappService.handleIncomingMessage(req.body);
+    const response = await whatsappService.handleIncomingMessage(req.body.From, req.body.Body);
 
     // Twilio expects TwiML response
     res.type('text/xml');

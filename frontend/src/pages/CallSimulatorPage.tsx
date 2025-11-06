@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { callsApi } from '../api/client';
-import { Phone, Send, PhoneOff, TrendingUp, Heart } from 'lucide-react';
+import { Send, PhoneOff, Heart } from 'lucide-react';
 
 export default function CallSimulatorPage() {
   const { callId } = useParams<{ callId: string }>();

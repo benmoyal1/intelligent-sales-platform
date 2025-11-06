@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { prospectsApi, callsApi } from '../api/client';
-import { Search, Brain, Phone, TrendingUp, Plus, X, Edit2, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
+import { Search, Brain, Phone, TrendingUp, Plus, X, Edit2, ChevronLeft, ChevronRight, MessageCircle, Eye } from 'lucide-react';
+import ConversationViewer from '../components/ConversationViewer';
 
 export default function ProspectsPage() {
   const [prospects, setProspects] = useState<any[]>([]);
@@ -28,6 +29,13 @@ export default function ProspectsPage() {
     custom_instructions: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
+  const [selectedCallType, setSelectedCallType] = useState<'voice' | 'whatsapp'>('voice');
+  const [selectedProspectName, setSelectedProspectName] = useState<string>('');
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailProspect, setDetailProspect] = useState<any | null>(null);
+  const [prospectConversations, setProspectConversations] = useState<any[]>([]);
+  const [loadingConversations, setLoadingConversations] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,6 +66,30 @@ export default function ProspectsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadConversations = async (prospectId: string) => {
+    setLoadingConversations(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/prospects/${prospectId}/conversations`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      setProspectConversations(data);
+    } catch (error) {
+      console.error('Failed to load conversations:', error);
+      setProspectConversations([]);
+    } finally {
+      setLoadingConversations(false);
+    }
+  };
+
+  const handleViewConversation = (callId: string, callType: 'voice' | 'whatsapp', prospectName: string) => {
+    setSelectedCallId(callId);
+    setSelectedCallType(callType);
+    setSelectedProspectName(prospectName);
+    setShowDetailModal(false); // Close detail modal when viewing conversation
   };
 
   const handleOpenInstructions = (prospect: any) => {
@@ -229,12 +261,16 @@ export default function ProspectsPage() {
           </thead>
           <tbody className="bg-dark-card divide-y divide-dark-border">
             {currentProspects.map((prospect) => {
-              const research = prospect.research_data
-                ? JSON.parse(prospect.research_data)
-                : null;
-
               return (
-                <tr key={prospect.id} className="hover:bg-dark-hover">
+                <tr
+                  key={prospect.id}
+                  className="hover:bg-dark-hover cursor-pointer"
+                  onClick={() => {
+                    setDetailProspect(prospect);
+                    setShowDetailModal(true);
+                    loadConversations(prospect.id);
+                  }}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-100">{prospect.name}</div>
@@ -266,7 +302,10 @@ export default function ProspectsPage() {
                       </div>
                     ) : (
                       <button
-                        onClick={() => handleResearch(prospect.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleResearch(prospect.id);
+                        }}
                         disabled={researchingId === prospect.id}
                         className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-100 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
                       >
@@ -277,14 +316,17 @@ export default function ProspectsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <button
-                      onClick={() => handleOpenInstructions(prospect)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenInstructions(prospect);
+                      }}
                       className="inline-flex items-center px-3 py-1.5 border border-dark-border text-xs font-medium rounded text-gray-300 bg-dark-card hover:bg-dark-hover"
                     >
                       <Edit2 className="w-3 h-3 mr-1" />
                       {prospect.custom_instructions ? 'View/Edit' : 'Add'}
                     </button>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                     {prospect.status !== 'contacted' ? (
                       <div className="flex justify-end gap-2">
                         <button
@@ -413,6 +455,25 @@ export default function ProspectsPage() {
                     <strong>Company:</strong> {selectedProspect.company}
                   </p>
                 </div>
+
+                {selectedProspect.status === 'contacted' && selectedProspect.last_call_id && (
+                  <div className="mb-4 p-3 bg-dark-hover rounded-md border border-dark-border">
+                    <p className="text-sm text-gray-300 mb-2">
+                      <strong>Last Call:</strong> {selectedProspect.last_call_type === 'voice' ? 'Voice Call' : 'WhatsApp'}
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSelectedCallId(selectedProspect.last_call_id);
+                        setSelectedCallType(selectedProspect.last_call_type || 'voice');
+                        setSelectedProspectName(selectedProspect.name);
+                      }}
+                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      View Conversation
+                    </button>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -592,6 +653,261 @@ export default function ProspectsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Conversation Viewer Modal */}
+      {selectedCallId && (
+        <ConversationViewer
+          callId={selectedCallId}
+          callType={selectedCallType}
+          prospectName={selectedProspectName}
+          onClose={() => setSelectedCallId(null)}
+        />
+      )}
+
+      {/* Prospect Detail Modal */}
+      {showDetailModal && detailProspect && (
+        <div className="fixed z-10 inset-0 overflow-y-auto">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowDetailModal(false)}></div>
+
+            <div className="inline-block align-bottom bg-dark-card rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+              <div className="bg-dark-card px-4 pt-5 pb-4 sm:p-6">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-2xl leading-6 font-bold text-gray-100">
+                      {detailProspect.name}
+                    </h3>
+                    <p className="text-sm text-gray-400 mt-1">{detailProspect.role}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowDetailModal(false)}
+                    className="text-gray-400 hover:text-gray-300"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Contact Information */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-dark-border pb-2">
+                      Contact Information
+                    </h4>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Email</label>
+                      <p className="text-sm text-gray-100">{detailProspect.email || 'N/A'}</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Phone</label>
+                      <p className="text-sm text-gray-100">{detailProspect.phone || 'N/A'}</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Status</label>
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          detailProspect.status === 'new'
+                            ? 'bg-gray-100 text-gray-800'
+                            : detailProspect.status === 'researched'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}
+                      >
+                        {detailProspect.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Company Information */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-dark-border pb-2">
+                      Company Information
+                    </h4>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Company</label>
+                      <p className="text-sm text-gray-100">{detailProspect.company}</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Industry</label>
+                      <p className="text-sm text-gray-100">{detailProspect.industry || 'N/A'}</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Company Size</label>
+                      <p className="text-sm text-gray-100">
+                        {detailProspect.company_size ? `${detailProspect.company_size} employees` : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Research Data */}
+                {detailProspect.research_data && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-dark-border pb-2 mb-4">
+                      Research Insights
+                    </h4>
+                    <div className="bg-dark-hover p-4 rounded-md">
+                      <p className="text-sm text-gray-300 whitespace-pre-wrap">{detailProspect.research_data}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Success Probability */}
+                {detailProspect.success_probability && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-dark-border pb-2 mb-4">
+                      Success Probability
+                    </h4>
+                    <div className="flex items-center">
+                      <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+                      <span className="text-2xl font-bold text-gray-100">{detailProspect.success_probability}%</span>
+                      <span className="text-sm text-gray-400 ml-2">conversion likelihood</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Custom Instructions */}
+                {detailProspect.custom_instructions && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-dark-border pb-2 mb-4">
+                      Custom Call Instructions
+                    </h4>
+                    <div className="bg-dark-hover p-4 rounded-md">
+                      <p className="text-sm text-gray-300 whitespace-pre-wrap">{detailProspect.custom_instructions}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Conversation History */}
+                <div className="mt-6">
+                  <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-dark-border pb-2 mb-4">
+                    Conversation History
+                  </h4>
+                  {loadingConversations ? (
+                    <div className="text-center py-4 text-gray-400 text-sm">Loading conversations...</div>
+                  ) : prospectConversations.length === 0 ? (
+                    <div className="text-center py-4 text-gray-400 text-sm">No conversations yet</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {prospectConversations.map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          className="bg-dark-hover p-3 rounded-md hover:bg-opacity-80 cursor-pointer transition-colors"
+                          onClick={() => handleViewConversation(conversation.id, conversation.call_type, detailProspect.name)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              {conversation.call_type === 'voice' ? (
+                                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                  <Phone className="w-4 h-4 text-white" />
+                                </div>
+                              ) : (
+                                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                                  <MessageCircle className="w-4 h-4 text-white" />
+                                </div>
+                              )}
+                              <div>
+                                <div className="text-sm font-medium text-gray-100">
+                                  {conversation.call_type === 'voice' ? 'Voice Call' : 'WhatsApp'}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  {new Date(conversation.created_at).toLocaleString()} • {conversation.message_count} messages
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span
+                                className={`px-2 py-0.5 text-xs rounded-full ${
+                                  conversation.status === 'completed'
+                                    ? 'bg-gray-700 text-gray-300'
+                                    : conversation.status === 'in_progress'
+                                    ? 'bg-green-900 text-green-300'
+                                    : 'bg-yellow-900 text-yellow-300'
+                                }`}
+                              >
+                                {conversation.status}
+                              </span>
+                              <Eye className="w-4 h-4 text-gray-400" />
+                            </div>
+                          </div>
+                          {conversation.outcome && (
+                            <div className="mt-2 text-xs text-gray-400">
+                              Outcome: {conversation.outcome}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="mt-6 pt-6 border-t border-dark-border flex justify-end gap-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDetailModal(false);
+                      handleOpenInstructions(detailProspect);
+                    }}
+                    className="inline-flex items-center px-4 py-2 border border-dark-border text-sm font-medium rounded text-gray-300 bg-dark-card hover:bg-dark-hover"
+                  >
+                    <Edit2 className="w-4 h-4 mr-2" />
+                    Edit Instructions
+                  </button>
+
+                  {detailProspect.status !== 'contacted' && (
+                    <>
+                      {!detailProspect.success_probability && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDetailModal(false);
+                            handleResearch(detailProspect.id);
+                          }}
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          <Brain className="w-4 h-4 mr-2" />
+                          Run Research
+                        </button>
+                      )}
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDetailModal(false);
+                          handleStartCall(detailProspect.id, 'voice');
+                        }}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Phone className="w-4 h-4 mr-2" />
+                        Start Voice Call
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDetailModal(false);
+                          handleStartCall(detailProspect.id, 'whatsapp');
+                        }}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        WhatsApp Campaign
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

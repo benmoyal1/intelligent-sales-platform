@@ -1,357 +1,128 @@
 # AI-Powered Outbound Sales Platform
 
-A modern, intelligent sales automation platform featuring real-time voice calls and WhatsApp messaging powered by AI. Built to streamline outbound sales operations with automated prospect research, multi-channel engagement, and intelligent meeting scheduling.
+An intelligent sales automation system leveraging multi-agent AI, voice calling, and WhatsApp messaging to qualify prospects and book meetings at scale.
 
-## Features
+## Core Features
 
-### Multi-Channel AI Automation
-- **Voice Calls**: Real-time AI-powered voice conversations using Vapi.ai
-- **WhatsApp Campaigns**: Automated messaging campaigns with intelligent conversation handling
-- **Smart Prospect Research**: AI-driven prospect analysis with success probability scoring
-- **Automated Meeting Scheduling**: AI detects and schedules meetings during conversations
+### AI & Voice Integration
+- **Real Voice Calls**: Vapi.ai integration for natural phone conversations with prospects
+- **AI Voice Agent**: GPT-4o-mini powered responses with OpenAI Echo voice synthesis
+- **Live Transcription**: Deepgram Nova-2 for real-time speech-to-text
+- **WhatsApp Automation**: Twilio-powered conversational campaigns with intelligent response generation
+- **Multi-Agent System**:
+  - Research Agent for prospect analysis and success probability scoring
+  - Call Agent for real-time conversation management
+  - Meeting Detection Agent for automated scheduling
 
-### Smart Prospect Management
-- Custom call instructions per prospect
-- Automated lead scoring and qualification
-- Real-time conversation tracking
-- Comprehensive prospect database with search and filtering
+### Intelligent Analysis
+- **RAG-Enhanced Context**: Dynamic system prompts built from prospect data, CRM insights, and conversation history
+- **Real-time Sentiment Analysis**: Live sentiment scoring during calls and conversations
+- **BANT Qualification**: Automatic detection of Budget, Authority, Need, and Timeline
+- **Success Probability Scoring**: AI-powered analysis predicting conversion likelihood (0-100%)
+- **Custom Instructions**: Per-prospect AI behavior customization and prompt engineering
 
-### Analytics & Insights
-- Real-time dashboard with key metrics
-- Call performance tracking
-- Meeting conversion analytics
-- Success probability indicators
+### Backend Architecture
+- **Load Balancing**: Nginx-based round-robin distribution across 2 backend instances
+- **RESTful API**: 25+ endpoints for prospects, calls, meetings, and campaigns
+- **JWT Authentication**: Secure token-based auth with bcrypt password hashing
+- **Pagination**: Efficient data retrieval with configurable page sizes
+- **Real-time Webhooks**: Live updates from Vapi and Twilio integrations
+- **SQLite Database**: Lightweight persistence with foreign key constraints
 
-### Modern Dark UI
-- **Dark Theme**: Professional dark theme inspired by Claude's interface
-- **Optimized Contrast**: Carefully selected colors for optimal readability
-- **Smooth Transitions**: Enhanced user experience with subtle animations
-- **Responsive Design**: Works seamlessly across all devices
+### Frontend Experience
+- **Modern React UI**: TypeScript-based SPA with dark theme
+- **Real-time Dashboard**: Live statistics for prospects, calls, meetings, and campaigns
+- **Prospect Management**: Search, filter, and paginate with inline custom instructions
+- **Live Call Interface**: Chat-style UI with real-time sentiment and qualification status
+- **Meeting Scheduler**: Automated booking with status tracking and account manager assignment
+- **Conversation Viewer**: Full transcript replay for voice and WhatsApp interactions
 
-## Tech Stack
+### Infrastructure & Deployment
+- **Docker Compose**: Multi-container orchestration with health checks
+- **Shared Data Volumes**: Persistent SQLite database across containers
+- **Custom Networking**: Isolated bridge network for service communication
+- **Environment Configuration**: Centralized `.env` management for all integrations
+- **Production Ready**: Nginx serving React build with optimized assets
 
-### Frontend
-- **React** - UI library for building interactive interfaces
-- **TypeScript** - Type-safe development
-- **Vite** - Fast build tool and dev server
-- **TailwindCSS** - Utility-first styling
-- **React Router** - Client-side routing
-- **Axios** - HTTP client
-- **Lucide React** - Modern icon library
+## Technology Stack
 
-### Backend
-- **Node.js** - JavaScript runtime
-- **Express** - Web application framework
-- **TypeScript** - Type-safe backend development
-- **SQLite** (better-sqlite3) - Embedded database
-- **JWT** - Authentication and authorization
-- **OpenAI GPT-4** - Conversational AI
-- **Vapi.ai SDK** - Real-time voice AI
-- **Twilio** - WhatsApp messaging
+**AI & Integrations**
+- Vapi.ai (voice calls & transcription)
+- Twilio (WhatsApp messaging)
+- OpenAI GPT-4o-mini (conversational AI)
+- Deepgram Nova-2 (speech recognition)
 
-## Architecture & Design
+**Backend**
+- Node.js + Express + TypeScript
+- SQLite (better-sqlite3)
+- JWT authentication
+- Nginx load balancer
 
-This platform follows modern software engineering principles:
+**Frontend**
+- React + TypeScript
+- React Router (SPA routing)
+- Tailwind CSS (dark theme)
+- Axios (API client)
+- Lucide icons
 
-### Design Patterns
-- **Service Layer Pattern**: Business logic separated into dedicated service classes
-- **Repository Pattern**: Database access abstracted through data access layer
-- **Singleton Pattern**: Single instances for stateful services (WhatsApp service)
-- **Observer Pattern**: Webhook-based event handling for external services
+**DevOps**
+- Docker & Docker Compose
+- Multi-stage builds
+- Volume persistence
+- Health monitoring
 
-### Software Principles
-- **SOLID Principles**: Single responsibility, dependency inversion, interface segregation
-- **DRY (Don't Repeat Yourself)**: Reusable components and utilities
-- **Separation of Concerns**: Clear boundaries between frontend, backend, and services
-- **Type Safety**: Full TypeScript implementation across the stack
+## API Highlights
 
-### Security Features
-- JWT-based authentication
-- Password hashing with bcrypt
-- Request validation and sanitization
-- CORS configuration
-- Environment variable protection
+- **Authentication**: Login, registration with JWT tokens
+- **Prospects**: CRUD operations, AI research, custom instructions, conversation history
+- **Calls**: Start/end voice/WhatsApp, real-time messaging, sentiment analysis
+- **Meetings**: Automated booking, status updates, account manager assignment
+- **Campaigns**: WhatsApp automation, progress tracking, success metrics
+- **Webhooks**: Vapi call events, WhatsApp message handling
 
-## Getting Started
+## Key Statistics
 
-You can run this application in two ways:
-1. **Local Development** - Traditional npm-based development
-2. **Docker Deployment** - Production-ready containerized deployment with load balancing
+- 5 database tables with relational integrity
+- 25+ REST API endpoints
+- 3 specialized AI agent services
+- 4 external API integrations
+- 2 load-balanced backend instances
+- 5 frontend pages with real-time updates
+- Supports concurrent voice and WhatsApp campaigns
 
-### Prerequisites
-- Node.js 18+ and npm (for local development)
-- Docker & Docker Compose (for containerized deployment)
-- OpenAI API key
-- Vapi.ai account and API key
-- Twilio account (for WhatsApp)
-
-### Quick Start with Docker (Recommended)
-
-For production deployment with 2 backend instances and nginx load balancing:
-
-```bash
-# Setup environment
-cp .env.docker.example .env.docker
-# Edit .env.docker with your API keys
-
-# Build and start all services
-make up-build
-
-# Check health
-make health
-```
-
-Access the application:
-- Frontend: http://localhost:3000
-- API (Load Balanced): http://localhost:8080/api
-
-See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for detailed Docker documentation.
-
-### Local Development Installation
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd alta_system
-```
-
-2. **Install dependencies**
-
-Backend:
-```bash
-cd backend
-npm install
-```
-
-Frontend:
-```bash
-cd frontend
-npm install
-```
-
-3. **Configure environment variables**
-
-Create `.env` in the backend directory:
-```env
-PORT=3001
-NODE_ENV=development
-
-# JWT
-JWT_SECRET=your-secret-key-here
-
-# OpenAI
-OPENAI_API_KEY=your-openai-api-key
-
-# Vapi.ai
-VAPI_API_KEY=your-vapi-api-key
-VAPI_PHONE_NUMBER=your-vapi-phone-number
-
-# Twilio (for WhatsApp)
-TWILIO_ACCOUNT_SID=your-twilio-account-sid
-TWILIO_AUTH_TOKEN=your-twilio-auth-token
-TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
-```
-
-Create `.env` in the frontend directory:
-```env
-VITE_API_URL=http://localhost:3001/api
-```
-
-4. **Initialize the database**
-```bash
-cd backend
-npm run seed
-```
-
-5. **Start the development servers**
-
-Backend:
-```bash
-cd backend
-npm run dev
-```
-
-Frontend (in a new terminal):
-```bash
-cd frontend
-npm run dev
-```
-
-6. **Access the application**
-Open http://localhost:5173 in your browser
-
-Default login credentials:
-- Username: `demo`
-- Password: `password`
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login and get JWT token
-
-### Prospects
-- `GET /api/prospects` - List all prospects
-- `GET /api/prospects/:id` - Get prospect details
-- `POST /api/prospects` - Create new prospect
-- `POST /api/prospects/:id/research` - Run AI research on prospect
-- `PATCH /api/prospects/:id/instructions` - Update custom call instructions
-- `GET /api/prospects/stats/summary` - Get prospect statistics
-
-### Calls
-- `GET /api/calls` - List all calls
-- `GET /api/calls/:id` - Get call details
-- `POST /api/calls/start` - Start voice or WhatsApp call
-- `POST /api/calls/:id/message` - Send message during call
-- `POST /api/calls/:id/end` - End call and record outcome
-- `GET /api/calls/stats/summary` - Get call statistics
-
-### Meetings
-- `GET /api/meetings` - List all meetings
-- `GET /api/meetings/:id` - Get meeting details
-- `POST /api/meetings` - Create new meeting
-- `PATCH /api/meetings/:id/status` - Update meeting status
-- `GET /api/meetings/stats/summary` - Get meeting statistics
-
-### WhatsApp Webhooks
-- `POST /api/whatsapp/webhook` - Receive incoming WhatsApp messages
-- `POST /api/whatsapp/status` - Receive message status updates
-
-## Project Structure
-
-```
-alta_system/
-├── backend/
-│   ├── src/
-│   │   ├── config/          # Configuration files
-│   │   ├── routes/          # API route handlers
-│   │   ├── services/        # Business logic services
-│   │   ├── database.ts      # Database initialization
-│   │   └── server.ts        # Express app entry point
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── api/            # API client
-│   │   ├── components/     # React components
-│   │   ├── pages/          # Page components
-│   │   └── App.tsx         # Main app component
-│   └── package.json
-└── README.md
-```
-
-## Development Scripts
-
-### Backend
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run seed` - Seed database with sample data
-- `npm run seed-100` - Seed 100 prospects for testing
-
-### Frontend
-- `npm run dev` - Start Vite development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-
-### Makefile Commands (Docker)
-```bash
-make help              # Show all available commands
-make up                # Start all containers
-make up-build          # Build and start containers
-make down              # Stop all containers
-make logs              # View logs from all services
-make health            # Check health of all services
-make restart-backend   # Restart backend instances
-make seed              # Seed database
-```
-
-See [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for complete command reference.
-
-## Scalability & Deployment
-
-### Production Architecture
-
-The Docker deployment provides a scalable, production-ready architecture:
+## Architecture
 
 ```
 ┌─────────────┐
-│   Frontend  │ :3000
+│   Frontend  │ ← React SPA (Port 3000)
 │   (Nginx)   │
-└─────────────┘
+└──────┬──────┘
        │
-       ↓
-┌─────────────┐
-│   Nginx LB  │ :8080 (Round Robin)
-└─────────────┘
+┌──────▼──────┐
+│    Nginx    │ ← Load Balancer (Port 8080)
+│  L/B (8080) │
+└──────┬──────┘
        │
-    ┌──┴──┐
-    ↓     ↓
-┌────────┐ ┌────────┐
-│Backend1│ │Backend2│ :3001
-└────────┘ └────────┘
-    │          │
-┌────────┐ ┌────────┐
-│  DB 1  │ │  DB 2  │
-└────────┘ └────────┘
+   ┌───┴───┐
+   │       │
+┌──▼─┐  ┌─▼──┐
+│ BE1│  │ BE2│ ← Backend Instances (Port 3001)
+└──┬─┘  └─┬──┘
+   └───┬──┘
+       │
+┌──────▼──────┐
+│   SQLite    │ ← Shared Database
+└─────────────┘
 ```
 
-### Key Features:
-- **Load Balancing**: Nginx distributes requests across 2 backend instances using round-robin
-- **High Availability**: If one backend fails, traffic automatically routes to healthy instances
-- **Health Checks**: All services have automated health monitoring
-- **Auto-Restart**: Containers automatically restart on failure
-- **Separate Data**: Each backend has its own database volume for data isolation
-- **Rate Limiting**: 10 requests/second per IP with burst capacity
-- **Resource Monitoring**: Built-in health and stats commands
+## Security
 
-### Scaling Horizontally
+- JWT tokens with 24-hour expiration
+- bcrypt password hashing (10 rounds)
+- Environment variable protection
+- Token validation middleware
+- CORS enabled for cross-origin requests
 
-To add more backend instances:
-1. Add new backend service in `docker-compose.yml`
-2. Update nginx upstream servers in `nginx/nginx.conf`
-3. Run `make down && make up-build`
+---
 
-The architecture supports adding as many backend instances as needed for your load requirements.
-
-## Key Features Explained
-
-### Voice Calls
-Voice calls use Vapi.ai for real-time AI conversations. The system:
-1. Runs AI research on the prospect
-2. Generates a custom system prompt with prospect context
-3. Initiates a real-time voice call through Vapi.ai
-4. Tracks conversation and automatically detects meeting agreements
-
-### WhatsApp Campaigns
-WhatsApp campaigns provide asynchronous messaging automation:
-1. Sends initial AI-generated outreach message
-2. Handles incoming responses via Twilio webhook
-3. Generates contextual AI responses using conversation history
-4. Automatically detects meeting scheduling or conversation completion
-5. Creates meeting records when prospects agree
-
-### AI Research
-The research system analyzes prospects and provides:
-- Success probability scoring (0-100%)
-- Key talking points tailored to the prospect
-- Pain points and objections
-- Recommended approach strategies
-
-## Future Enhancements
-
-- Email campaign integration
-- Advanced analytics and reporting
-- CRM integrations (Salesforce, HubSpot)
-- Calendar integration (Google Calendar, Outlook)
-- Team collaboration features
-- A/B testing for messaging strategies
-- Voice sentiment analysis
-- Multi-language support
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+Built with modern AI technologies for intelligent, scalable outbound sales automation.

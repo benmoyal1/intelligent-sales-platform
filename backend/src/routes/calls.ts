@@ -145,12 +145,20 @@ callsRouter.post('/start', authenticateToken, async (req, res) => {
       prospect.custom_instructions || undefined
     );
 
-    // Create call record in database
+    // Create call record in database with Vapi call ID for webhook tracking
     const callId = uuidv4();
+    const initialConversation = JSON.stringify([
+      {
+        vapiCallId: vapiCall.callId,
+        timestamp: new Date().toISOString(),
+        status: 'initiated',
+      },
+    ]);
+
     db.prepare(
-      `INSERT INTO calls (id, prospect_id, status, conversation)
-       VALUES (?, ?, 'active', '[]')`
-    ).run(callId, prospect_id);
+      `INSERT INTO calls (id, prospect_id, status, conversation, call_type)
+       VALUES (?, ?, 'in_progress', ?, 'voice')`
+    ).run(callId, prospect_id, initialConversation);
 
     console.log(`[Calls] Real call initiated! Vapi Call ID: ${vapiCall.callId}`);
 
@@ -219,7 +227,7 @@ callsRouter.post('/:id/message', authenticateToken, async (req, res) => {
 // End call
 callsRouter.post('/:id/end', authenticateToken, async (req, res) => {
   try {
-    const { outcome, meeting_booked } = req.body;
+    const { outcome, meeting_booked, scheduled_time } = req.body;
     const callId = req.params.id;
 
     const call = db.prepare('SELECT * FROM calls WHERE id = ?').get(callId) as any;
@@ -245,6 +253,22 @@ callsRouter.post('/:id/end', authenticateToken, async (req, res) => {
        WHERE id = ?`
     ).run(outcome || analysis.next_action, meeting_booked ? 1 : 0, analysis.sentiment, duration, callId);
 
+    // Create meeting if one was booked
+    if (meeting_booked) {
+      const meetingId = uuidv4();
+      const meetingTime = scheduled_time || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // Default to tomorrow
+
+      db.prepare(`
+        INSERT INTO meetings (
+          id, prospect_id, call_id, scheduled_time, duration_minutes,
+          meeting_type, status, account_manager_name, account_manager_email,
+          calendar_link, created_at
+        ) VALUES (?, ?, ?, ?, 15, 'discovery', 'scheduled', 'Account Manager', 'am@alta.com', 'https://calendar.com/am', datetime('now'))
+      `).run(meetingId, call.prospect_id, callId, meetingTime);
+
+      console.log(`[Calls] Meeting created: ${meetingId} for ${meetingTime}`);
+    }
+
     // Update prospect status
     db.prepare("UPDATE prospects SET status = 'contacted' WHERE id = ?").run(call.prospect_id);
 
@@ -261,18 +285,126 @@ callsRouter.post('/:id/end', authenticateToken, async (req, res) => {
   }
 });
 
+// Get call conversation (for real-time updates)
+callsRouter.get('/:id/conversation', authenticateToken, (req, res) => {
+  try {
+    const call = db
+      .prepare('SELECT conversation, status, call_type FROM calls WHERE id = ?')
+      .get(req.params.id) as any;
+
+    if (!call) {
+      return res.status(404).json({ error: 'Call not found' });
+    }
+
+    let conversation = [];
+    if (call.conversation) {
+      try {
+        const parsed = JSON.parse(call.conversation);
+        // Handle new format (object with messages array) or old format (array)
+        if (Array.isArray(parsed)) {
+          conversation = parsed;
+        } else if (parsed && Array.isArray(parsed.messages)) {
+          conversation = parsed.messages;
+        } else {
+          conversation = [];
+        }
+      } catch (e) {
+        console.error('Failed to parse conversation:', e);
+      }
+    }
+
+    res.json({
+      conversation,
+      status: call.status,
+      call_type: call.call_type,
+    });
+  } catch (error) {
+    console.error('Get conversation error:', error);
+    res.status(500).json({ error: 'Failed to fetch conversation' });
+  }
+});
+
+// End an active call (for voice calls via Vapi)
+callsRouter.post('/:id/end-active', authenticateToken, async (req, res) => {
+  try {
+    const callId = req.params.id;
+
+    const call = db.prepare('SELECT * FROM calls WHERE id = ?').get(callId) as any;
+
+    if (!call) {
+      return res.status(404).json({ error: 'Call not found' });
+    }
+
+    // If it's a voice call, try to end it via Vapi
+    if (call.call_type === 'voice' && call.status === 'in_progress') {
+      // Parse conversation to get Vapi call ID
+      let vapiCallId = null;
+      try {
+        const conversationData = JSON.parse(call.conversation || '{}');
+        // Handle new format (object with vapiCallId) or old format (array)
+        if (conversationData.vapiCallId) {
+          vapiCallId = conversationData.vapiCallId;
+        } else if (Array.isArray(conversationData)) {
+          const initMessage = conversationData.find((msg: any) => msg.vapiCallId);
+          vapiCallId = initMessage?.vapiCallId;
+        }
+      } catch (e) {
+        console.error('Failed to parse conversation:', e);
+      }
+
+      if (vapiCallId) {
+        try {
+          await voiceService.endCall(vapiCallId);
+          console.log(`[Calls] Ended Vapi call: ${vapiCallId}`);
+        } catch (error) {
+          console.error('[Calls] Failed to end Vapi call:', error);
+        }
+      }
+    }
+
+    // Update call status in database
+    db.prepare(`
+      UPDATE calls
+      SET status = 'completed',
+          outcome = 'ended by user',
+          completed_at = ?
+      WHERE id = ?
+    `).run(new Date().toISOString(), callId);
+
+    // Update prospect status
+    db.prepare("UPDATE prospects SET status = 'contacted' WHERE id = ?").run(call.prospect_id);
+
+    res.json({ success: true, message: 'Call ended successfully' });
+  } catch (error) {
+    console.error('End active call error:', error);
+    res.status(500).json({ error: 'Failed to end call' });
+  }
+});
+
 // Get call stats
 callsRouter.get('/stats/summary', authenticateToken, (req, res) => {
   try {
-    const stats = db.prepare(`
+    // Get call statistics
+    const callStats = db.prepare(`
       SELECT
         COUNT(*) as total_calls,
         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-        SUM(CASE WHEN meeting_booked = 1 THEN 1 ELSE 0 END) as meetings_booked,
         AVG(sentiment_score) as avg_sentiment,
         AVG(duration_seconds) as avg_duration
       FROM calls
-    `).get();
+    `).get() as any;
+
+    // Get actual meeting count from meetings table
+    const meetingStats = db.prepare(`
+      SELECT COUNT(*) as meetings_booked
+      FROM meetings
+    `).get() as any;
+
+    // Combine statistics
+    const stats = {
+      ...callStats,
+      meetings_booked: meetingStats.meetings_booked || 0,
+    };
 
     res.json(stats);
   } catch (error) {

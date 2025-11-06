@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Backend Instance 1
   backend1:
@@ -7,19 +5,14 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: alta-backend-1
+    env_file:
+      - .env.docker
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - JWT_SECRET=${JWT_SECRET}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - VAPI_API_KEY=${VAPI_API_KEY}
-      - VAPI_PHONE_NUMBER=${VAPI_PHONE_NUMBER}
-      - VAPI_ASSISTANT_ID=${VAPI_ASSISTANT_ID}
-      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-      - TWILIO_WHATSAPP_NUMBER=${TWILIO_WHATSAPP_NUMBER}
+      - DB_PATH=/app/data/outbound.db
     volumes:
-      - backend1_data:/app/data
+      - shared_backend_data:/app/data
     networks:
       - alta_network
     restart: unless-stopped
@@ -36,19 +29,14 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: alta-backend-2
+    env_file:
+      - .env.docker
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - JWT_SECRET=${JWT_SECRET}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - VAPI_API_KEY=${VAPI_API_KEY}
-      - VAPI_PHONE_NUMBER=${VAPI_PHONE_NUMBER}
-      - VAPI_ASSISTANT_ID=${VAPI_ASSISTANT_ID}
-      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-      - TWILIO_WHATSAPP_NUMBER=${TWILIO_WHATSAPP_NUMBER}
+      - DB_PATH=/app/data/outbound.db
     volumes:
-      - backend2_data:/app/data
+      - shared_backend_data:/app/data
     networks:
       - alta_network
     restart: unless-stopped
@@ -105,7 +93,5 @@ networks:
     driver: bridge
 
 volumes:
-  backend1_data:
-    driver: local
-  backend2_data:
+  shared_backend_data:
     driver: local

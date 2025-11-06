@@ -121,6 +121,56 @@ prospectsRouter.post('/:id/research', authenticateToken, async (req, res) => {
   }
 });
 
+// Get all conversations for a prospect
+prospectsRouter.get('/:id/conversations', authenticateToken, (req, res) => {
+  try {
+    const calls = db.prepare(`
+      SELECT id, call_type, status, conversation, created_at, completed_at, outcome, duration_seconds
+      FROM calls
+      WHERE prospect_id = ?
+      ORDER BY created_at DESC
+    `).all(req.params.id) as any[];
+
+    // Parse conversations and extract message counts
+    const conversationsWithDetails = calls.map(call => {
+      let messageCount = 0;
+      let messages = [];
+
+      if (call.conversation) {
+        try {
+          const parsed = JSON.parse(call.conversation);
+          if (Array.isArray(parsed)) {
+            messages = parsed;
+            messageCount = parsed.length;
+          } else if (parsed.messages && Array.isArray(parsed.messages)) {
+            messages = parsed.messages;
+            messageCount = parsed.messages.length;
+          }
+        } catch (e) {
+          console.error('Failed to parse conversation:', e);
+        }
+      }
+
+      return {
+        id: call.id,
+        call_type: call.call_type,
+        status: call.status,
+        outcome: call.outcome,
+        duration_seconds: call.duration_seconds,
+        message_count: messageCount,
+        messages: messages,
+        created_at: call.created_at,
+        completed_at: call.completed_at,
+      };
+    });
+
+    res.json(conversationsWithDetails);
+  } catch (error) {
+    console.error('Get conversations error:', error);
+    res.status(500).json({ error: 'Failed to fetch conversations' });
+  }
+});
+
 // Get prospect stats
 prospectsRouter.get('/stats/summary', authenticateToken, (req, res) => {
   try {

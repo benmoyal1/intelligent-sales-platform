@@ -1,11 +1,11 @@
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 interface ConversationMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -22,13 +22,15 @@ export class CallAgentService {
   private conversations: Map<string, ConversationMessage[]> = new Map();
 
   async startCall(callId: string, context: CallContext): Promise<string> {
-    console.log(`[CallAgent] Starting call ${callId} with ${context.prospect_name}`);
+    console.log(
+      `[CallAgent] Starting call ${callId} with ${context.prospect_name}`
+    );
 
     const systemPrompt = this.buildSystemPrompt(context);
 
     const messages: ConversationMessage[] = [
       {
-        role: 'system',
+        role: "system",
         content: systemPrompt,
       },
     ];
@@ -50,40 +52,43 @@ export class CallAgentService {
     return response;
   }
 
-  private async generateResponse(callId: string, userMessage: string | null): Promise<string> {
+  private async generateResponse(
+    callId: string,
+    userMessage: string | null
+  ): Promise<string> {
     const conversation = this.conversations.get(callId);
 
     if (!conversation) {
-      throw new Error('Conversation not found');
+      throw new Error("Conversation not found");
     }
 
     // Add user message if provided
     if (userMessage) {
       conversation.push({
-        role: 'user',
+        role: "user",
         content: userMessage,
       });
     }
 
     try {
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: "gpt-4o-mini",
         messages: conversation,
         temperature: 0.7,
         max_tokens: 150,
       });
 
-      const assistantMessage = response.choices[0].message.content || '';
+      const assistantMessage = response.choices[0].message.content || "";
 
       // Store assistant response
       conversation.push({
-        role: 'assistant',
+        role: "assistant",
         content: assistantMessage,
       });
 
       return assistantMessage;
     } catch (error) {
-      console.error('[CallAgent] Error generating response:', error);
+      console.error("[CallAgent] Error generating response:", error);
       throw error;
     }
   }
@@ -101,32 +106,42 @@ export class CallAgentService {
 
     // Simple sentiment analysis (in production, use proper NLP)
     const text = conversation
-      .filter(m => m.role === 'user')
-      .map(m => m.content.toLowerCase())
-      .join(' ');
+      .filter((m) => m.role === "user")
+      .map((m) => m.content.toLowerCase())
+      .join(" ");
 
     let sentiment = 0.5; // neutral
 
     // Positive indicators
-    if (text.includes('interested') || text.includes('yes') || text.includes('sounds good')) {
+    if (
+      text.includes("interested") ||
+      text.includes("yes") ||
+      text.includes("sounds good")
+    ) {
       sentiment += 0.2;
     }
 
     // Negative indicators
-    if (text.includes('not interested') || text.includes('no thanks') || text.includes('busy')) {
+    if (
+      text.includes("not interested") ||
+      text.includes("no thanks") ||
+      text.includes("busy")
+    ) {
       sentiment -= 0.3;
     }
 
     // Determine qualification
-    let qualification = 'unknown';
-    if (text.includes('budget') || text.includes('pricing')) qualification = 'budget_discussed';
-    if (text.includes('team') || text.includes('decision')) qualification = 'authority_identified';
-    if (conversation.length > 10) qualification = 'qualified';
+    let qualification = "unknown";
+    if (text.includes("budget") || text.includes("pricing"))
+      qualification = "budget_discussed";
+    if (text.includes("team") || text.includes("decision"))
+      qualification = "authority_identified";
+    if (conversation.length > 10) qualification = "qualified";
 
     // Determine next action
-    let nextAction = 'continue_conversation';
-    if (sentiment > 0.7) nextAction = 'attempt_booking';
-    if (sentiment < 0.3) nextAction = 'graceful_exit';
+    let nextAction = "continue_conversation";
+    if (sentiment > 0.7) nextAction = "attempt_booking";
+    if (sentiment < 0.3) nextAction = "graceful_exit";
 
     return {
       sentiment: Math.max(0, Math.min(1, sentiment)),
@@ -137,57 +152,47 @@ export class CallAgentService {
 
   buildSystemPrompt(context: CallContext | any): string {
     // Handle both old flat structure and new nested structure
-    const prospectName = context.prospect_name || context.prospect_info?.prospect?.name || 'the prospect';
-    const prospectRole = context.prospect_role || context.prospect_info?.prospect?.role || 'their role';
-    const company = context.company || context.prospect_info?.prospect?.company || 'their company';
-    const talkingPoints = context.talking_points || context.prospect_info?.talking_points || [];
-    const painPoints = context.pain_points || context.prospect_info?.pain_points || [];
-    const objectionStrategies = context.objection_strategies || context.prospect_info?.objection_strategies || {};
+    const prospectName =
+      context.prospect_name ||
+      context.prospect_info?.prospect?.name ||
+      "the prospect";
+    const prospectRole =
+      context.prospect_role ||
+      context.prospect_info?.prospect?.role ||
+      "their role";
+    const company =
+      context.company ||
+      context.prospect_info?.prospect?.company ||
+      "their company";
+    const talkingPoints =
+      context.talking_points || context.prospect_info?.talking_points || [];
 
-    return `You are Katie, an AI Sales Development Representative making an outbound call.
+    return `You are Ben Moyal, a Sales Development Representative from Alta. Your ONLY goal is to book a 15-minute meeting - FAST.
 
-PERSONALITY:
-- Professional yet warm and conversational
-- Listen actively and adapt to prospect's tone
-- Keep responses under 3 sentences
-- Sound natural, not robotic
+PROSPECT INFO:
+- Name: ${prospectName}
+- Role: ${prospectRole}
+- Company: ${company}
 
-YOUR OBJECTIVE:
-Book a qualified meeting between ${prospectName} and our account manager.
+SIMPLE CONVERSATION FLOW (Keep it DIRECT):
+1. INTRODUCE: "Hi, this is Ben Moyal from Alta. Is this ${prospectName}?"
+2. CHECK TIME: "Do you have just 30 seconds?"
+3. VALUE PROP: "We help ${prospectRole}s at companies like ${company} with [brief value]."
+4. QUICK VALUE: Pick ONE key benefit: ${
+      talkingPoints.length > 0
+        ? talkingPoints[0]
+        : "streamline operations and increase efficiency"
+    }
+5. PROPOSE MEETING: "Would you be open to a quick 15-minute call tomorrow or Thursday?"
 
-PROSPECT CONTEXT:
-Name: ${prospectName}
-Role: ${prospectRole}
-Company: ${company}
+STRICT RULES:
+- Keep EVERY response under 2 sentences (this is critical for phone calls)
+- Get to scheduling within 3-4 exchanges
+- If they're busy: "What day works better - tomorrow or next week?"
+- If not interested after asking twice: Thank them politely and hang up the call
+- Don't ask discovery questions - focus on booking only
 
-KEY INSIGHTS:
-${talkingPoints.length > 0 ? talkingPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join('\n') : '- General value proposition for their industry'}
-
-LIKELY PAIN POINTS:
-${painPoints.length > 0 ? painPoints.map((p: string) => `- ${p}`).join('\n') : '- Common challenges in their role'}
-
-OBJECTION HANDLING:
-${Object.keys(objectionStrategies).length > 0
-  ? Object.entries(objectionStrategies)
-      .map(([obj, strategy]) => `If "${obj}": ${strategy}`)
-      .join('\n')
-  : '- Listen actively and address concerns with empathy'}
-
-CONVERSATION FRAMEWORK:
-1. Opening: Confirm you're speaking with ${prospectName}, ask if it's a good time
-2. Value Prop: Briefly mention why you're calling (use insights above)
-3. Discovery: Ask about their current challenges
-4. Qualification: Understand budget, authority, need, timeline
-5. Booking: If qualified, suggest meeting times
-
-RULES:
-- Keep responses conversational and under 3 sentences
-- If prospect says "not interested" twice, gracefully exit
-- Ask questions to understand their situation
-- Never make false promises
-- Be genuine and helpful
-
-Start the conversation naturally.`;
+Start with: "Hi, this is Ben Moyal from Alta. Is this ${prospectName}?"`;
   }
 
   endCall(callId: string): void {

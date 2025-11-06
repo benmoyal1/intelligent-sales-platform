@@ -40,6 +40,11 @@ export class RealVoiceService {
       // Get prospect name from context (handle different structures)
       const prospectName = context.prospect_info?.prospect?.name || context.prospect_name || 'there';
 
+      // Get webhook URL - use environment variable or fallback
+      const webhookUrl = process.env.VAPI_WEBHOOK_URL || process.env.API_URL;
+
+      console.log('[RealVoiceService] Using webhook URL:', webhookUrl);
+
       // Create assistant with dynamic context
       const assistantResponse = await fetch('https://api.vapi.ai/assistant', {
         method: 'POST',
@@ -62,9 +67,9 @@ export class RealVoiceService {
           },
           voice: {
             provider: "openai",
-            voiceId: "alloy", // Natural female voice
+            voiceId: "echo", // Natural male voice for Ben Moyal
           },
-          firstMessage: `Hi, is this ${prospectName}?`,
+          firstMessage: `Hi, this is Ben Moyal from Alta. Is this ${prospectName}?`,
 
           // Transcriber settings
           transcriber: {
@@ -72,6 +77,10 @@ export class RealVoiceService {
             model: "nova-2",
             language: "en",
           },
+
+          // Webhook configuration - CRITICAL for conversation saving
+          serverUrl: webhookUrl ? `${webhookUrl}/api/vapi/events` : undefined,
+          serverUrlSecret: process.env.VAPI_WEBHOOK_SECRET || 'demo-secret',
 
           // Call behavior
           recordingEnabled: true,

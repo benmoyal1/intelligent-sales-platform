@@ -1,16 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(echo $OPENAI_API_KEY)",
-      "Bash(npm run seed:*)",
-      "Bash(npm install:*)",
-      "Bash(npm run dev:*)",
-      "Bash(lsof:*)",
-      "Bash(kill:*)",
       "Bash(curl:*)",
-      "Bash(sqlite3:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(docker-compose logs:*)",
+      "Bash(docker-compose exec:*)",
+      "Bash(awk:*)",
+      "Bash(docker-compose up:*)",
       "Bash(cat:*)",
-      "Bash(npm run test-calls:*)"
+      "Bash(docker exec:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(make up-build:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(sqlite3:*)",
+      "Bash(node -e:*)",
+      "Bash(lsof:*)",
+      "Bash(find:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Complete AI-powered outbound sales platform with comprehensive documentation\n\nThis commit finalizes the AI-powered sales automation system with full-featured\nvoice calling, WhatsApp integration, and intelligent prospect analysis.\n\nKey Features:\n- Real voice calls via Vapi.ai with GPT-4o-mini powered conversations\n- WhatsApp automation through Twilio with AI response generation\n- Multi-agent AI system (Research, Call, Meeting Detection agents)\n- Real-time sentiment analysis and BANT qualification\n- RAG-enhanced context with custom per-prospect instructions\n- Load-balanced backend architecture with Nginx\n- Comprehensive REST API with JWT authentication\n- Modern React frontend with real-time updates\n- Docker-based deployment with health monitoring\n\nTechnical Improvements:\n- Added Vapi webhook handler for real-time call transcripts\n- Implemented ConversationViewer component for transcript replay\n- Enhanced prospect management with custom AI instructions\n- Streamlined documentation (removed redundant guides)\n- Professional README and QUICKSTART for quick onboarding\n\nInfrastructure:\n- 2 load-balanced backend instances\n- Shared SQLite database with volume persistence\n- Nginx reverse proxy configuration\n- Multi-container Docker Compose orchestration\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

@@ -13,7 +13,7 @@ NC := \033[0m # No Color
 help: ## Show this help message
 	@echo "$(BLUE)Alta AI Sales Platform - Available Commands$(NC)"
 	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
 
 # Development Commands
@@ -36,16 +36,37 @@ build: ## Build all Docker images
 
 up: ## Start all containers in detached mode
 	@echo "$(BLUE)Starting containers...$(NC)"
-	@docker-compose --env-file .env.docker up -d
+	@docker-compose up -d
 	@echo "$(GREEN)Containers started successfully!$(NC)"
 	@echo "Frontend: http://localhost:3000"
 	@echo "API Load Balancer: http://localhost:8080"
 	@make health
 
-up-build: ## Build and start all containers
-	@echo "$(BLUE)Building and starting containers...$(NC)"
-	@docker-compose --env-file .env.docker up -d --build
-	@echo "$(GREEN)Containers started successfully!$(NC)"
+up-build: ## Build and start all containers from scratch with seeded data
+	@echo "$(BLUE)=== Starting Fresh Deployment ===$(NC)"
+	@echo "$(YELLOW)Step 1: Cleaning up old containers and volumes...$(NC)"
+	@docker-compose down -v 2>/dev/null || true
+	@echo "$(YELLOW)Step 2: Building Docker images...$(NC)"
+	@docker-compose build
+	@echo "$(YELLOW)Step 3: Starting containers...$(NC)"
+	@docker-compose up -d
+	@echo "$(YELLOW)Step 4: Waiting for containers to be healthy...$(NC)"
+	@sleep 10
+	@echo "$(YELLOW)Step 5: Seeding database with test data...$(NC)"
+	@docker-compose exec -T backend1 node -e "const{seedDatabase}=require('./dist/seed-data');seedDatabase().then(()=>process.exit(0));" 2>/dev/null || docker-compose exec -T backend1 npm run seed
+	@echo ""
+	@echo "$(GREEN)========================================$(NC)"
+	@echo "$(GREEN)   Deployment Complete!$(NC)"
+	@echo "$(GREEN)========================================$(NC)"
+	@echo ""
+	@echo "$(BLUE)Access Points:$(NC)"
+	@echo "  Frontend:     $(GREEN)http://localhost:3000$(NC)"
+	@echo "  API:          $(GREEN)http://localhost:8080/api$(NC)"
+	@echo ""
+	@echo "$(BLUE)Login Credentials:$(NC)"
+	@echo "  Username:     $(GREEN)test$(NC)"
+	@echo "  Password:     $(GREEN)test123$(NC)"
+	@echo ""
 	@make health
 
 down: ## Stop and remove all containers
@@ -145,14 +166,24 @@ install-frontend: ## Install frontend dependencies
 	@cd frontend && npm install
 
 # Database Commands
-seed: ## Seed database with sample data
+seed: ## Seed database with sample data (local)
 	@echo "$(BLUE)Seeding database...$(NC)"
 	@cd backend && npm run seed
 	@echo "$(GREEN)Database seeded successfully!$(NC)"
 
-seed-100: ## Seed database with 100 prospects
+seed-100: ## Seed database with 100 prospects (local)
 	@echo "$(BLUE)Seeding database with 100 prospects...$(NC)"
 	@cd backend && npm run seed-100
+	@echo "$(GREEN)Database seeded with 100 prospects!$(NC)"
+
+seed-docker: ## Seed database in Docker container
+	@echo "$(BLUE)Seeding database in Docker...$(NC)"
+	@docker-compose exec backend1 npm run seed
+	@echo "$(GREEN)Database seeded successfully!$(NC)"
+
+seed-docker-100: ## Seed 100 prospects in Docker container
+	@echo "$(BLUE)Seeding 100 prospects in Docker...$(NC)"
+	@docker-compose exec backend1 npm run seed-100
 	@echo "$(GREEN)Database seeded with 100 prospects!$(NC)"
 
 # Build Commands (Local)
@@ -214,7 +245,7 @@ prod-build: ## Build for production
 
 prod-up: ## Start production containers
 	@echo "$(BLUE)Starting production environment...$(NC)"
-	@docker-compose --env-file .env.docker up -d
+	@docker-compose up -d
 	@echo "$(GREEN)Production environment started!$(NC)"
 
 # Utility Commands
