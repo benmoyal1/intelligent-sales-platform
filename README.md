@@ -2,6 +2,15 @@
 
 An intelligent sales automation system leveraging multi-agent AI, voice calling, and WhatsApp messaging to qualify prospects and book meetings at scale.
 
+## Assignment Context
+
+**Challenge:** Design an AI-driven scalable solution to automate an outbound call center that books meetings for senior account managers.
+
+**Timeline:** 2 business days
+**Budget:** $50 API credits
+
+**Solution:** Multi-agent architecture with real voice calls (Vapi.ai), WhatsApp automation (Twilio), and automatic meeting detection—demonstrating production-ready patterns within budget constraints.
+
 ## Core Features
 
 ### AI & Voice Integration
@@ -122,6 +131,26 @@ An intelligent sales automation system leveraging multi-agent AI, voice calling,
 - Environment variable protection
 - Token validation middleware
 - CORS enabled for cross-origin requests
+
+## Design Decisions
+
+**Multi-Agent Architecture**
+Three specialized agents (Research, Call, Meeting Detection) rather than a monolithic agent for better separation of concerns and easier testing/optimization of each component.
+
+**GPT-4o-mini for Voice**
+Chosen for cost-efficiency ($0.15 per 1M tokens vs $5 for GPT-4) and low latency. Voice calls need fast responses; mini provides 95% quality at 3% cost.
+
+**SQLite vs PostgreSQL**
+SQLite simplifies deployment (no separate DB container) and is sufficient for demo scale. Production would use PostgreSQL for concurrent write performance.
+
+**60-Second Call Limit**
+Keeps costs predictable (~$0.10-0.15 per call). Meeting booking conversations rarely need more than 1 minute of effective talk time.
+
+**Load Balancing with 2 Instances**
+Demonstrates horizontal scalability thinking without over-engineering. Real production would scale based on metrics and use container orchestration.
+
+**Direct OpenAI API vs LangChain**
+LangChain adds abstraction overhead. Direct API calls provide better cost control, clearer debugging, and lower latency for this use case.
 
 ---
 
