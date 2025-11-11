@@ -6,8 +6,6 @@ An intelligent sales automation system leveraging multi-agent AI, voice calling,
 
 **Challenge:** Design an AI-driven scalable solution to automate an outbound call center that books meetings for senior account managers.
 
-**Timeline:** 2 business days
-**Budget:** $50 API credits
 
 **Solution:** Multi-agent architecture with real voice calls (Vapi.ai), WhatsApp automation (Twilio), and automatic meeting detection—demonstrating production-ready patterns within budget constraints.
 
